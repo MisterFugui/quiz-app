@@ -1,0 +1,285 @@
+/* ✅ 答题卡弹窗和浮窗 */
+.card-float-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 35px;
+    background: #fff;
+    border: 1.5px solid #1677ff;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(22, 119, 255, 0.10);
+    cursor: pointer;
+    z-index: 1100;
+    color: #1677ff;
+    transition: background 0.2s;
+}
+
+.card-float-btn:hover {
+    background: #e6f0ff;
+}
+
+.card-popup-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.18);
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-popup {
+    background: #fff;
+    border-radius: 18px;
+    padding: 30px 35px;
+    min-width: 340px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13);
+    max-width: 90vw;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.card-popup h3 {
+    margin: 0 0 10px 0;
+    font-size: 19px;
+    color: #1677ff;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.nav-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+.nav-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 答题卡按钮判色：灰=未答，绿=对，红=错 */
+.nav-btn.unanswered {
+    background: #ddd;
+    color: #333;
+}
+
+.nav-btn.correct {
+    background: #36b26c;
+    color: #fff;
+    border: 2px solid #239b56;
+}
+
+.nav-btn.wrong {
+    background: #e74c3c;
+    color: #fff;
+    border: 2px solid #b92d20;
+}
+
+.nav-btn.active {
+    outline: 2.5px solid #1677ff;
+    box-shadow: 0 0 4px #1677ff3c;
+}
+
+/* 判色选项样式 */
+.correct-answer {
+    border-color: #36b26c !important;
+    background-color: #e7f9ee !important;
+    position: relative;
+    color: #239b56;
+    font-weight: bold;
+}
+
+.correct-answer::before {
+    content: "";
+    position: absolute;
+    left: 15px;
+    font-size: 18px;
+    color: #36b26c;
+}
+
+.wrong-answer {
+    border-color: #e74c3c !important;
+    background-color: #fdecea !important;
+    position: relative;
+    color: #b92d20;
+    font-weight: bold;
+}
+
+.wrong-answer::before {
+    content: "";
+    position: absolute;
+    left: 15px;
+    font-size: 18px;
+    color: #e74c3c;
+}
+
+/* 选中选项样式 */
+li.selected {
+    border-color: #1677ff;
+    background-color: #e6f0ff;
+}
+
+/* 题卡内容整体居中优化 */
+.container {
+    max-width: 800px;
+    width: 90%;
+    background: #ffffff;
+    padding: 40px 50px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: #333;
+    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+
+}
+
+/* 一键清空按钮 */
+.btn.danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.btn.danger:hover {
+    background: #c0392b;
+}
+
+@media (max-width: 600px) {
+    .card-popup {
+        min-width: 90vw;
+        padding: 16px;
+    }
+
+    .card-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+/* 整体向右平移*/
+.container {
+    margin-left: 22vw;
+}
+
+.type-label {
+    grid-column: 1 / -1;
+    text-align: left;
+    font-weight: bold;
+    font-size: 17px;
+    color: #1677ff;
+    margin: 10px 0 0 0;
+    padding: 3px 2px 3px 2px;
+    background: #f6faff;
+    border-radius: 5px;
+}
+/* 选项前面的黑点消失*/
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+/* 选项大号圆圈字母样式（推荐用这个覆盖你的 option-item 和 custom-radio 相关部分） */
+.option-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    margin: 9px 0;
+    border-radius: 8px;
+    transition: background 0.18s, border 0.18s;
+    min-height: 38px;
+    border: 2px solid transparent;
+    padding-left: 0.2em;
+}
+
+.custom-radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid #bbb;
+    font-size: 18px;
+    font-weight: 600;
+    color: #38506a;
+    background: #fff;
+    margin-right: 12px;
+    transition: border-color 0.18s, background 0.18s, color 0.18s;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+.custom-radio.checked {
+    border: 2.5px solid #1677ff;
+    color: #1677ff;
+    background: #e7f3ff;
+    box-shadow: 0 0 0 2px #1677ff22;
+}
+
+.option-text {
+    flex: 1;
+    font-size: 18px;
+    color: #222;
+    user-select: none;
+}
+
+/* 选中行和hover高亮 */
+.option-item.selected,
+.option-item:hover {
+    background: #f5f8ff;
+}
+
+/* 正确/错误颜色 */
+.option-item.correct-answer,
+.option-item.correct-answer .custom-radio {
+    border-color: #36b26c !important;
+    color: #239b56 !important;
+    background: #e7f9ee !important;
+}
+
+.option-item.wrong-answer,
+.option-item.wrong-answer .custom-radio {
+    border-color: #e74c3c !important;
+    color: #b92d20 !important;
+    background: #fdecea !important;
+}
+
+.option-item.correct-answer .custom-radio,
+.option-item.wrong-answer .custom-radio {
+    border-width: 2.5px !important;
+}
+
+/* 取消前置黑点 */
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
