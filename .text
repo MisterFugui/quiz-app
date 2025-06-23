@@ -263,3 +263,10 @@ export default function QuizApp() {
     </div>
   );
 }
+
+
+
+/* 整体向右平移*/
+.container {
+  margin-left: 22vw;
+}

@@ -1,196 +1,250 @@
-import React, { useState, useEffect } from "react";
+// QuizApp.jsx
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { phpQuestions, politicsQuestions } from "./questions";
 import "./style.css";
 
 export default function QuizApp() {
-  // 当前题库动态状态，初始为 PHP 题库
-  const [questions, setQuestions] = useState(phpQuestions);
+  // 题库类型与章节选择
+  const [bank, setBank] = useState(localStorage.getItem("quiz-bank") || "php");
+  const [chapter, setChapter] = useState(
+    Number(localStorage.getItem("quiz-chapter")) || 0
+  );
+
+  // 计算当前题集
+  const questions = useMemo(
+    () =>
+      bank === "php"
+        ? phpQuestions
+        : politicsQuestions.filter((q) => q.chapter === chapter),
+    [bank, chapter]
+  );
 
   // 做题相关状态
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(
+    Number(localStorage.getItem("quiz-index")) || 0
+  );
   const [selected, setSelected] = useState([]);
-  const [score, setScore] = useState(0);
+  const [answersMap, setAnswersMap] = useState(() =>
+    Array(questions.length).fill([])
+  ); // 每题已选答案
+  const [score, setScore] = useState(
+    Number(localStorage.getItem("quiz-score")) || 0
+  );
   const [showAnswer, setShowAnswer] = useState(false);
-  const [records, setRecords] = useState(Array(phpQuestions.length).fill("unanswered"));
   const [reviewMode, setReviewMode] = useState(false);
   const [showCard, setShowCard] = useState(false);
+  const [records, setRecords] = useState(() => {
+    const saved = localStorage.getItem("quiz-records");
+    return saved
+      ? JSON.parse(saved)
+      : Array(questions.length).fill("unanswered");
+  });
 
-  // 切换题库：PHP 或 思政
-  const switchBank = (bank) => {
-    const newQs = bank === "php" ? phpQuestions : politicsQuestions;
-    setQuestions(newQs);
-    // 重置所有做题状态
+  // 本地持久化
+  useEffect(() => {
+    localStorage.setItem("quiz-bank", bank);
+    localStorage.setItem("quiz-chapter", chapter);
+    localStorage.setItem("quiz-index", index);
+    localStorage.setItem("quiz-score", score);
+    localStorage.setItem("quiz-records", JSON.stringify(records));
+  }, [bank, chapter, index, score, records]);
+
+  // 切换题库／章节 —— 保留做题痕迹
+  const switchBank = useCallback((newBank) => {
+    setBank(newBank);
+    setChapter(0);
     setIndex(0);
-    setSelected([]);
-    setScore(0);
-    setShowAnswer(false);
-    setReviewMode(false);
-    setShowCard(false);
-    setRecords(Array(newQs.length).fill("unanswered"));
-  };
+  }, []);
+  const switchChapter = useCallback((ch) => {
+    setChapter(ch);
+    setIndex(0);
+  }, []);
 
-  // 当前题目
   const current = questions[index];
+
+  // 进入题目时恢复上次 selected，并自动展示已做题目的答案
+  useEffect(() => {
+    setSelected(answersMap[index] || []);
+    // 如果已经做过，则自动显示答案
+    if (records[index] !== "unanswered") {
+      setShowAnswer(true);
+    } else {
+      setShowAnswer(reviewMode);
+    }
+  }, [index, answersMap, records, reviewMode]);
+
+  // 翻页
+  const next = useCallback(() => {
+    setShowAnswer(false);
+    setIndex((i) => Math.min(i + 1, questions.length - 1));
+  }, [questions.length]);
+  const prev = useCallback(() => {
+    setShowAnswer(false);
+    setIndex((i) => Math.max(i - 1, 0));
+  }, []);
+
+  // 键盘翻页
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [next, prev]);
+
+  // 全部题做完
   if (!current) {
     return (
       <div className="container">
         <h1>🎉 恭喜你完成练习！</h1>
-        <p>得分：{score} / {questions.length}</p>
+        <p>
+          得分：{score} / {questions.length}
+        </p>
       </div>
     );
   }
 
-  // 兼容单/多选答案格式
+  // 答案格式兼容
   const answerArr = Array.isArray(current.answer)
     ? current.answer
     : typeof current.answer === "string"
-      ? current.answer.split("")
-      : [current.answer];
-
+    ? current.answer.split("")
+    : [current.answer];
   const isMultiple =
-    (typeof current.answer === "string" && current.answer.length > 1 && /^[A-Z]+$/.test(current.answer))
-    || Array.isArray(current.answer);
+    (typeof current.answer === "string" &&
+      current.answer.length > 1 &&
+      /^[A-Z]+$/.test(current.answer)) ||
+    Array.isArray(current.answer);
 
-  // 选项点击逻辑
+  // 选项点击
   const toggleOption = (opt) => {
     if (showAnswer) return;
     if (!isMultiple) {
       setSelected([opt]);
     } else {
-      const next = selected.includes(opt)
-        ? selected.filter(o => o !== opt)
-        : [...selected, opt];
-      setSelected(next);
+      setSelected((sel) =>
+        sel.includes(opt) ? sel.filter((o) => o !== opt) : [...sel, opt]
+      );
     }
   };
 
   // 判分
-  const isCorrect = () => {
-    if (!isMultiple) return selected[0] === answerArr[0];
-    return [...selected].sort().join("") === [...answerArr].sort().join("");
-  };
+  const isCorrect = () =>
+    !isMultiple
+      ? selected[0] === answerArr[0]
+      : [...selected].sort().join("") === [...answerArr].sort().join("");
 
-  // 提交答案
+  // 提交
   const handleSubmit = () => {
     setShowAnswer(true);
-    const correct = isCorrect();
-
-    setRecords(prev => {
+    // 保存本题 selected
+    setAnswersMap((m) => {
+      const next = [...m];
+      next[index] = selected;
+      return next;
+    });
+    // 记录对错
+    setRecords((prev) => {
       const updated = [...prev];
-      updated[index] = correct ? "correct" : "wrong";
-      if (correct) {
-        setScore(score + 1);
+      updated[index] = isCorrect() ? "correct" : "wrong";
+      if (isCorrect()) {
+        setScore((s) => s + 1);
+        // 自动跳到下一个未答题
         setTimeout(() => {
-          let nextIndex = index + 1;
-          while (nextIndex < questions.length && updated[nextIndex] === "correct") {
-            nextIndex++;
-          }
-          if (nextIndex >= questions.length) {
-            setIndex(questions.length);
-          } else {
+          let n = index + 1;
+          while (n < questions.length && updated[n] === "correct") n++;
+          if (n < questions.length) {
             setShowAnswer(false);
-            setSelected([]);
-            setIndex(nextIndex);
+            setIndex(n);
           }
-        }, 1000);
+        }, 500);
       }
       return updated;
     });
   };
 
-  // 翻页
-  const next = () => {
-    setShowAnswer(false);
-    setSelected([]);
-    setIndex(Math.min(index + 1, questions.length - 1));
-  };
-  const prev = () => {
-    setShowAnswer(false);
-    setSelected([]);
-    setIndex(Math.max(index - 1, 0));
-  };
-
-  // 答题卡跳题
-  const handleCardClick = (idx) => {
-    setIndex(idx);
-    setSelected([]);
-    setShowCard(false);
-    setShowAnswer(reviewMode);
-  };
-
-  // 清空记录
+  // 清除做题痕迹
   const handleClearRecords = () => {
+    setAnswersMap(Array(questions.length).fill([]));
     setRecords(Array(questions.length).fill("unanswered"));
     setScore(0);
     setIndex(0);
     setShowAnswer(false);
-    setSelected([]);
+    setReviewMode(false);
     setShowCard(false);
   };
 
-  useEffect(() => {
-    setShowAnswer(reviewMode);
-  }, [index, reviewMode]);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [index, showAnswer, selected, reviewMode]);
+  // 答题卡跳题
+  const handleCardClick = (i) => {
+    setIndex(i);
+    setShowCard(false);
+  };
 
   return (
     <div className="container">
-      {/* 题库切换按钮 */}
-      <div style={{ marginBottom: 20 }}>
-        <button className="btn" onClick={() => switchBank("php")}>PHP 题库</button>
-        <button className="btn" onClick={() => switchBank("politics")}>思政题库</button>
+      {/* 工具栏：题库+章节 */}
+      <div className="toolbar">
+        <button className="btn" onClick={() => switchBank("php")}>
+          PHP 题库
+        </button>
+        <button className="btn" onClick={() => switchBank("politics")}>
+          思政题库
+        </button>
+        {bank === "politics" && (
+          <select
+            className="chapter-select"
+            value={chapter}
+            onChange={(e) => switchChapter(Number(e.target.value))}
+          >
+            {Array.from({ length: 18 }, (_, i) => (
+              <option key={i} value={i}>
+                {i === 0 ? "导论" : `${i} 章`}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* 切换做题/背题 */}
-      <div style={{ marginBottom: "20px" }}>
-        <button className="btn" onClick={() => setReviewMode(!reviewMode)}>
+      <div className="toolbar">
+        <button className="btn" onClick={() => setReviewMode((r) => !r)}>
           {reviewMode ? "返回做题模式" : "进入背题模式"}
         </button>
       </div>
 
       {/* 题干 */}
-      <h2>{index + 1}、{current.question}</h2>
+      <h2>
+        {index + 1}、{current.question}
+      </h2>
 
       {/* 选项列表 */}
       <ul className="option-list">
         {Object.entries(current.options).map(([k, v]) => {
           let liClass = "option-item";
           let radioClass = "custom-radio";
-
           if (showAnswer) {
             if (isMultiple) {
-              if (answerArr.includes(k) && selected.includes(k)) {
-                liClass += " correct-answer";
+              if (answerArr.includes(k)) {
                 radioClass += " correct";
-              } else if (!answerArr.includes(k) && selected.includes(k)) {
-                liClass += " wrong-answer";
+                liClass += " correct-answer";
+              } else if (selected.includes(k)) {
                 radioClass += " wrong";
-              } else if (answerArr.includes(k)) {
-                liClass += " correct-answer";
-                radioClass += " correct";
+                liClass += " wrong-answer";
               }
             } else {
               if (k === answerArr[0]) {
-                liClass += " correct-answer";
                 radioClass += " correct";
+                liClass += " correct-answer";
               } else if (selected.includes(k)) {
-                liClass += " wrong-answer";
                 radioClass += " wrong";
+                liClass += " wrong-answer";
               }
             }
           } else if (selected.includes(k)) {
-            liClass += " selected";
             radioClass += " checked";
+            liClass += " selected";
           }
-
           return (
             <li key={k} className={liClass} onClick={() => toggleOption(k)}>
               <span className={radioClass}>{k}</span>
@@ -218,39 +272,42 @@ export default function QuizApp() {
             </button>
           </>
         )}
-        <button className="btn small" onClick={() => setShowCard(true)}>答题卡</button>
+        <button className="btn small" onClick={() => setShowCard(true)}>
+          答题卡
+        </button>
       </div>
 
       {/* 答题卡弹窗 */}
       {showCard && (
         <div className="card-popup-bg" onClick={() => setShowCard(false)}>
-          <div className="card-popup" onClick={e => e.stopPropagation()}>
+          <div className="card-popup" onClick={(e) => e.stopPropagation()}>
             <h3>答题卡（点击跳题）</h3>
             <div className="card-grid">
-              {questions.map((q, idx) => {
-                let label = null;
-                if (idx === 0) label = "单选";
-                if (idx === phpQuestions.length) label = "思政题开始"; // 如需标记
-                // …也可根据 q.type 自动标签
-                return (
-                  <React.Fragment key={idx}>
-                    {label && <div className="type-label">{label}</div>}
-                    <button
-                      className={`nav-btn ${records[idx]}${index === idx ? " active" : ""}`}
-                      onClick={() => handleCardClick(idx)}
-                    >{idx + 1}</button>
-                  </React.Fragment>
-                );
-              })}
+              {questions.map((_, i) => (
+                <button
+                  key={i}
+                  className={`nav-btn ${records[i]}${index === i ? " active" : ""}`}
+                  onClick={() => handleCardClick(i)}
+                >
+                  {i + 1}
+                </button>
+              ))}
             </div>
-            <div style={{ marginTop: 22, textAlign: "center" }}>
-              <button className="btn danger" onClick={handleClearRecords}>🧹 一键清除做题记录</button>
+            <div className="toolbar" style={{ justifyContent: "space-between" }}>
+              <button className="btn" onClick={() => setShowCard(false)}>
+                ❌ 退出答题卡
+              </button>
+              <button className="btn danger" onClick={handleClearRecords}>
+                🧹 一键清除做题痕迹
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="card-float-btn" onClick={() => setShowCard(true)}>🗂️</div>
+      <div className="card-float-btn" onClick={() => setShowCard(true)}>
+        🗂️
+      </div>
     </div>
   );
 }
