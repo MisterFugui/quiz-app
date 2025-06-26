@@ -1,4 +1,4 @@
-const phpQuestions = [
+const rawPhpQuestions = [
   {
     id: 1,
     question: "PHP中实现“至少执行一次循环”的结构是？",
@@ -1291,4 +1291,7 @@ const phpQuestions = [
   }
 
 ];
-export default phpQuestions;
+export default rawPhpQuestions;
+
+
+

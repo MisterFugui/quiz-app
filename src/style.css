@@ -35,11 +35,6 @@ li {
     gap: 8px;
     margin-bottom: 20px;
 }
-/* —— 增加答题卡界面底部的两个按钮和上面序号之间的距离 —— */
-.card-popup .toolbar {
-    margin-top: 24px;
-    /* 调大这个值试试 */
-}
 
 .toolbar select.chapter-select {
     margin-left: 8px;
@@ -48,6 +43,11 @@ li {
     border: 1px solid #ccc;
     border-radius: 4px;
     background: #fff;
+}
+
+/* —— 增加答题卡界面底部的两个按钮和上面序号之间的距离 —— */
+.card-popup .toolbar {
+    margin-top: 24px;
 }
 
 /* —— 答题卡弹窗和浮窗 —— */
@@ -107,6 +107,14 @@ li {
     grid-template-columns: repeat(8, 1fr);
     gap: 8px;
     margin-top: 12px;
+}
+
+/* —— 在题型标签与按钮之间增加空隙，并让标签置于上方 —— */
+.card-popup .card-grid .type-label {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
 }
 
 .nav-btn {
@@ -249,7 +257,8 @@ li {
         grid-template-columns: repeat(5, 1fr);
     }
 }
-/* 整体向右平移*/
+
+/* 整体向右平移 */
 .container {
     margin-left: 22vw;
 }
