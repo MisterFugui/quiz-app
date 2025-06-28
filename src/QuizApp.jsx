@@ -384,7 +384,7 @@ export default function QuizApp() {
                 className="btn danger"
                 onClick={handleClearRecords}
               >
-                🧹 一键清除本章痕迹
+                🧹 一键清除做题痕迹
               </button>
             </div>
           </div>
