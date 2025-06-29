@@ -3993,7 +3993,7 @@ const politicsQuestions = [
       C: "4.15",
       D: "5.15"
     },
-    answer: "A"
+    answer: "D"
   },
   {
     id: 345,
