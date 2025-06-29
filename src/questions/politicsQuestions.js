@@ -2738,7 +2738,7 @@ const politicsQuestions = [
       C: "十三届四中全会",
       D: "十三大"
     },
-    answer: "C"
+    answer: "A"
   },
   {
     id: 229,
