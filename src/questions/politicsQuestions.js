@@ -2336,7 +2336,7 @@ const politicsQuestions = [
     type: "判断题",
     question: "人才是国之大计、党之大计，是国家经济社会发展的支撑力量，在国家发展中始终具有基础性先导性全局性地位。",
     options: { A: "正确", B: "错误" },
-    answer: "A"
+    answer: "B"
   },
   {
     id: 197,
