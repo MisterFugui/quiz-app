@@ -921,7 +921,7 @@ const politicsQuestions = [
     options: {
       A: "和平",
       B: "发展",
-      C: "和平",
+      C: "合作",
       D: "共赢"
     },
     answer: ["A", "B", "C", "D"]
