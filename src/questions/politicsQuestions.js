@@ -3431,7 +3431,9 @@ const politicsQuestions = [
     question: "（ ）是保障和改善民生的重要方针。",
     options: {
       A: "尽力而为",
-      B: "量力而行"
+      B: "量力而行",
+      C: "突出重点",
+      D: "正确把握民生和发展的关系"
     },
     answer: ["A", "B"]
   },
