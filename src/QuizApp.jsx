@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { phpQuestions, politicsQuestions } from "./questions";
 import "./style.css";
 
+
 export default function QuizApp() {
   // —— 题库与章节 ——
   const [quizBank, setQuizBank] = useState(localStorage.getItem("quiz-bank") || "php");
