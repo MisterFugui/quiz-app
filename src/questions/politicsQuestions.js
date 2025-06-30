@@ -401,7 +401,7 @@ const politicsQuestions = [
       C: "社会主义革命",
       D: "中国特色社会主义"
     },
-    answer: "C"
+    answer: "A"
   },
   {
     id: 33,
